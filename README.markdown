@@ -9,7 +9,7 @@ Momentum is a proactive task management application that organizes tasks into "U
 - **Dynamic UI**: Responsive, real-time interface using React, Tailwind CSS, and ShadCN, with tabbed buckets and a date picker.
 
 ### Innovation Feature: AI-Powered Prioritization
-- **Description**: Suggests the "Most Important Task" (MIT) by scoring tasks based on urgency keywords (e.g., "urgent," "critical") and deadline proximity.
+- **Description**: Suggests the "Most Important Task" (MIT) by using llama3-70b-8192 LLM with groq and if groq didnt worked then  scoring tasks based on urgency keywords (e.g., "urgent," "critical") and deadline proximity.
 - **Why It's Useful**: Helps users focus on high-priority tasks, reducing overwhelm and boosting productivity.
 - **Implementation**: The backend scores tasks via the `/api/prioritize/` endpoint, and the frontend displays the MIT with a badge.
 
