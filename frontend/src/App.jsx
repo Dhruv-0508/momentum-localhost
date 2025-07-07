@@ -16,6 +16,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 const App = () => {
   const [tasks, setTasks] = useState([]);
   const [mit, setMit] = useState(null);
+  const [mitReason, setMitReason] = useState(""); // NEW
   const [newTask, setNewTask] = useState({ title: "", description: "" });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [error, setError] = useState(null);
@@ -33,7 +34,7 @@ const App = () => {
       const data = await response.json();
       setTasks(data);
       setError(null);
-    } catch (error) {
+    } catch {
       setError("Failed to load tasks.");
     }
   };
@@ -43,8 +44,9 @@ const App = () => {
       const response = await fetch(`${API_URL}/prioritize/`);
       const data = await response.json();
       setMit(data.most_important_task);
+      setMitReason(data.reason || ""); // NEW
       setError(null);
-    } catch (error) {
+    } catch {
       setError("Failed to load MIT.");
     }
   };
@@ -65,49 +67,47 @@ const App = () => {
       setSelectedDate(new Date());
       fetchTasks();
       fetchMIT();
-    } catch (error) {
+    } catch {
       setError("Failed to create task.");
     }
   };
 
-const handleUpdateTask = async (id, updates) => {
-  try {
-    const taskToUpdate = tasks.find((t) => t.id === id);
-    if (!taskToUpdate) {
-      throw new Error('Task not found in local state');
-    }
-    const fullUpdate = {
-      ...taskToUpdate,
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-    console.log('Updating task ID:', id, 'with full update:', fullUpdate);
-    const response = await fetch(`${API_URL}/tasks/${id}/`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(fullUpdate),
-    });
-    console.log('PUT response status:', response.status);
-    const text = await response.text(); // Get raw response
-    console.log('Raw response:', text);
-    if (!response.ok) {
-      try {
-        const errorData = JSON.parse(text);
-        console.log('Error data:', errorData);
-        throw new Error(`Failed to update task: ${JSON.stringify(errorData)}`);
-      } catch (parseError) {
-        throw new Error(`Failed to update task: Server error - ${text}`);
+  const handleUpdateTask = async (id, updates) => {
+    try {
+      const taskToUpdate = tasks.find((t) => t.id === id);
+      if (!taskToUpdate) throw new Error("Task not found in local state");
+
+      const fullUpdate = {
+        ...taskToUpdate,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      };
+
+      const response = await fetch(`${API_URL}/tasks/${id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(fullUpdate),
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(`Failed to update task: ${JSON.stringify(errorData)}`);
+        } catch {
+          throw new Error(`Failed to update task: Server error - ${text}`);
+        }
       }
+
+      const updatedTaskResponse = await fetch(`${API_URL}/tasks/${id}/`);
+      const updatedTask = await updatedTaskResponse.json();
+      setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
+      fetchMIT();
+    } catch (error) {
+      console.error("Error updating task:", error);
+      setError(`Failed to update task: ${error.message}`);
     }
-    const updatedTaskResponse = await fetch(`${API_URL}/tasks/${id}/`);
-    const updatedTask = await updatedTaskResponse.json();
-    setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
-    fetchMIT();
-  } catch (error) {
-    console.error('Error updating task:', error);
-    setError(`Failed to update task: ${error.message}`);
-  }
-};
+  };
 
   const handleDeleteTask = async (id) => {
     try {
@@ -139,18 +139,25 @@ const handleUpdateTask = async (id, updates) => {
             <CardHeader>
               <CardTitle>Most Important Task</CardTitle>
             </CardHeader>
-            <CardContent className="flex justify-between items-center">
-              <div>
-                <p className="font-semibold">{mit.title}</p>
-                <p className="text-sm text-gray-600">{mit.description}</p>
-                <p className="text-xs text-gray-500">
-                  Due{" "}
-                  {formatDistanceToNow(new Date(mit.deadline), {
-                    addSuffix: true,
-                  })}
-                </p>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-semibold">{mit.title}</p>
+                  <p className="text-sm text-gray-600">{mit.description}</p>
+                  <p className="text-xs text-gray-500">
+                    Due{" "}
+                    {formatDistanceToNow(new Date(mit.deadline), {
+                      addSuffix: true,
+                    })}
+                  </p>
+                </div>
+                <Badge className="bg-yellow-500 text-white">MIT</Badge>
               </div>
-              <Badge className="bg-yellow-500 text-white">MIT</Badge>
+              {mitReason && (
+                <p className="text-sm text-gray-700 italic">
+                  🧠 Why this task? {mitReason}
+                </p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -225,12 +232,14 @@ const handleUpdateTask = async (id, updates) => {
                           })}
                         </p>
                       </div>
-<div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 min-w-[180px]">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 min-w-[180px]">
                         {task.status !== "completed" && (
                           <Button
                             variant="secondary"
                             onClick={() =>
-                              handleUpdateTask(task.id, { is_completed: true })
+                              handleUpdateTask(task.id, {
+                                is_completed: true,
+                              })
                             }
                             className="flex-1 text-green-500"
                           >

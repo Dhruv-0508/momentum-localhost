@@ -42,8 +42,7 @@ venv.bak/
 
 # Environment files
 .env
-.env.*
-*.env
+
 
 # Coverage and test
 .coverage
