@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from .models import Task
 from .serializers import TaskSerializer
 from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
@@ -15,7 +18,23 @@ class TaskViewSet(viewsets.ModelViewSet):
         return super().get_serializer(*args, **kwargs)
 
     def perform_update(self, serializer):
-        serializer.save(updated_at=timezone.now())
+        logger.info(f"Performing update with validated data: {serializer.validated_data}")
+        try:
+            instance = serializer.save()
+            logger.info(f"Updated instance data: {instance.__dict__}")
+            # Refresh from database to confirm
+            instance.refresh_from_db()
+            logger.info(f"Refreshed instance data: {instance.__dict__}")
+            if 'is_completed' in serializer.validated_data:
+                if instance.is_completed != serializer.validated_data['is_completed']:
+                    instance.is_completed = serializer.validated_data['is_completed']
+                    instance.save(update_fields=['is_completed'])
+                    logger.info(f"Forced is_completed to {instance.is_completed}")
+                    instance.refresh_from_db()  # Confirm after force
+                    logger.info(f"Final instance data: {instance.__dict__}")
+        except Exception as e:
+            logger.error(f"Error in perform_update: {str(e)}")
+            raise
 
 @api_view(['GET'])
 def prioritize_task(request):

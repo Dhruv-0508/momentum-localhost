@@ -88,12 +88,17 @@ const handleUpdateTask = async (id, updates) => {
       body: JSON.stringify(fullUpdate),
     });
     console.log('PUT response status:', response.status);
+    const text = await response.text(); // Get raw response
+    console.log('Raw response:', text);
     if (!response.ok) {
-      const errorData = await response.json();
-      console.log('Error data:', errorData);
-      throw new Error(`Failed to update task: ${JSON.stringify(errorData)}`);
+      try {
+        const errorData = JSON.parse(text);
+        console.log('Error data:', errorData);
+        throw new Error(`Failed to update task: ${JSON.stringify(errorData)}`);
+      } catch (parseError) {
+        throw new Error(`Failed to update task: Server error - ${text}`);
+      }
     }
-    // Force refresh by re-fetching the specific task
     const updatedTaskResponse = await fetch(`${API_URL}/tasks/${id}/`);
     const updatedTask = await updatedTaskResponse.json();
     setTasks(tasks.map((t) => (t.id === id ? updatedTask : t)));
