@@ -35,7 +35,7 @@ Momentum is a proactive task management application that organizes tasks into "U
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install django djangorestframework psycopg2-binary
+   pip install -r requirements.txt
    ```
 3. Configure PostgreSQL:
    - Create a database named `momentum`.
