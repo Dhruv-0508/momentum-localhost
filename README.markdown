@@ -69,8 +69,8 @@ Momentum is a proactive task management application that organizes tasks into "U
 5. Open `http://localhost:5173`.
 
 ### Deployment
-- **Frontend**: Deploy to Vercel/Netlify.
-- **Backend**: Deploy to Render/Heroku with PostgreSQL.
+- **Frontend**: Deploy to Vercel/Netlify. 
+- **Backend**: Deploy to Render with PostgreSQL.
 - **Environment Variables**:
   - Backend: `DJANGO_SECRET_KEY`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`.
   - Frontend: `VITE_API_URL`.
@@ -88,7 +88,6 @@ Momentum is a proactive task management application that organizes tasks into "U
 
 ## Future Improvements
 - Add Celery for scalable auto-bucketing.
-- Integrate NLP for advanced prioritization via xAI API (see https://x.ai/api).
 - Add user authentication and notifications.
 
 ## Live Demo
