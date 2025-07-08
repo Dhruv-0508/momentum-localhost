@@ -103,7 +103,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'momentum',
         'USER': 'postgres',
-        'PASSWORD': 'kanha@2003',
+        'PASSWORD': 'Djdhruv@2003',
         'HOST': 'localhost',
         'PORT': '5432',
     }
